@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { Timer, timeString } from "@/_lib/datetime"
 
 /*
 State consists of:
@@ -21,52 +22,78 @@ Alternating between each contraction in the list is an interval:
 */
 
 export default function ContractionTimer() {
-  const [inContraction, setInContraction] = useState(false);
+  const [currentContraction, setCurrentContraction] = useState(null);
   const [contractionHistory, setContractionHistory] = useState([]);
-  const [testInc, setTestInc] = useState(0);
 
-  function handleStartStop(startTime = null, duration = null, intensity = null) {
-    if (inContraction) {
-      setInContraction(false);
-      setTestInc(testInc + 1);
-
+  function handleStartStop({ startTime = null, duration = null, intensity = null }) {
+    if (currentContraction) {
       const newCtxHist = [...contractionHistory];
       newCtxHist.push({
-        startTime: startTime,
+        startTime: currentContraction.startTime,
         duration: duration,
         intensity: intensity
       });
+      setCurrentContraction(null);
       setContractionHistory(newCtxHist);
     } else {
-      setInContraction(true);
+      setCurrentContraction({ startTime: startTime });
     }
   }
 
   return (
     <div>
-      <StartStopContainer inContraction={inContraction} onButtonPress={handleStartStop} />
+      {/* <CurrentTimeDisplay /> */}
+      <StartStopContainer inContraction={currentContraction} handleStartStop={handleStartStop} />
       <ContractionList ctxList={contractionHistory} />
     </div>
   );
 }
 
-function StartStopContainer({ inContraction, onButtonPress }) {
+function StartStopContainer({ inContraction, handleStartStop }) {
   if (inContraction) {
-    return <NewContractionUI handleStopCtx={onButtonPress} />;
+    return <NewContractionUI handleStopCtx={handleStartStop} />;
   } else {
-    return <StartButton handleStartCtx={onButtonPress} />;
+    return <StartButton handleStartCtx={handleStartStop} />;
   }
 }
 
 function NewContractionUI({ handleStopCtx }) {
-  const startTime = '12:37pm';
-  const duration = 10;
+  const [duration, setDuration] = useState(0);
+  const intensityName = "intensity";
+  const intensitySlider = useRef(null);
   const intensity = 3;
-  return <button onClick={() => handleStopCtx(startTime, duration, intensity)}>Stop</button>
+  const intensityMin = 1;
+  const intensityMax = 10;
+
+  function onTimerTick(elapsed) {
+    setDuration(elapsed);
+  }
+
+  return (
+    <div>
+      <Timer onTimerTick={onTimerTick} />
+      <label for={intensityName}>Intensity</label>
+      <input
+        ref={intensitySlider}
+        id={intensityName}
+        name={intensityName}
+        min={intensityMin}
+        max={intensityMax}
+        type="range" />
+      <button onClick={() => handleStopCtx({
+        duration: duration,
+        intensity: intensitySlider.current.value
+      })}>Stop</button >
+    </div>
+  ); // we are ending the contraction, no need to pass a start time.
 }
 
 function StartButton({ handleStartCtx }) {
-  return <button onClick={handleStartCtx}>Start</button>
+  return (
+    <button onClick={() => handleStartCtx({
+      startTime: new Date()
+    })}>Start</button>
+  ); // pass only the start time.
 }
 
 function ContractionList({ ctxList }) {
@@ -76,21 +103,22 @@ function ContractionList({ ctxList }) {
       {ctxList.map((ctx, i, ctxHist) => {
         if (i > 0) {
           const prevCtx = ctxHist[i - 1];
-          interval =
+          let cadence = new Date(ctx.startTime - prevCtx.startTime);
+          let rest = new Date(cadence - prevCtx.duration);
+          interval = (
             <li>
-              <p>Contraction Cadence: {ctx.startTime - prevCtx.startTime}</p>
-              <p>Rest Time: {ctx.startTime - (prevCtx.startTime + prevCtx.duration)}</p>
-            </li>;
+              <p>Contraction Cadence: {timeString(cadence)}</p>
+              <p>Rest Time: {timeString(rest)}</p>
+            </li>
+          );
         }
         return (
           <>
             {interval}
-            <li> Contraction
-              <ul>
-                <li>Start Time: {ctx.startTime}</li>
-                <li>Duration: {ctx.duration}</li>
-                <li>Intensity: {ctx.intensity}</li>
-              </ul>
+            <li>Contraction
+              <p>Start Time: {ctx.startTime.toLocaleTimeString()}</p>
+              <p>Duration: {timeString(ctx.duration)}</p>
+              <p>Intensity: {ctx.intensity}</p>
             </li>
           </>
         );
