@@ -1,11 +1,16 @@
 import Link from 'next/link';
-import Layout from '@/components/layout'
-import routes from '@/components/routes'
+import Layout from '@/components/layout';
+import routes from '@/components/routes';
+import { useRouter } from 'next/router';
 
-export default function Profile({ babyName, birthday }) {
+export default function UserProfile({ babyName, birthday }) {
+  const router = useRouter();
+  const { id: userID } = router.query;
+
+
   return (
     <Layout title="Profile">
-      <h1>Profile</h1>
+      <h1>Profile for {userID}</h1>
       <ul>
         <li>Baby's Name: {babyName}</li>
         <li>{babyName}'s Birthday: {birthday.month}/{birthday.day}/{birthday.year}</li>
@@ -16,7 +21,7 @@ export default function Profile({ babyName, birthday }) {
 }
 
 export async function getServerSideProps() {
-  // get things from the database here.
+  // get data from the database here.
   return {
     props: {
       babyName: "Holden Forest Hess",
