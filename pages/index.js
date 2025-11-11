@@ -8,7 +8,7 @@ export default function Home() {
       <h1>Welcome to the Baby App.</h1>
       <ul>
         <li><Link href={routes.ctxTimer}>Contraction Timer</Link></li>
-        <li><Link href={routes.profile}>View Profile</Link></li>
+        <li><Link href={routes.users}>List of Users</Link></li>
       </ul>
     </Layout>
   );

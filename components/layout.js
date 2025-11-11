@@ -16,7 +16,7 @@ export default function Layout({ children, title }) {
             </main>
             <footer>
                 <p>This is the layout footer.</p>
-                <Link href={routes.home}>Back to Home</Link>
+                <Link href={routes.root}>Back to Home</Link>
             </footer>
         </div>
     );

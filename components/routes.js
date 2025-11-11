@@ -1,5 +1,6 @@
 const routes = Object.freeze({
-    home: '/',
+    root: '/',
+    users: '/users/user_list',
     profile: '/users/profile',
     profileEdit: '/users/profile/edit',
     ctxTimer: '/tools/ctxtimer'
